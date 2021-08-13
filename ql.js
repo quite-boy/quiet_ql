@@ -33,7 +33,61 @@ module.exports.getEnvs = async (pin) => {
   }).json();
   return body.data;
 };
-
+// 获取资产详细
+module.exports.getAssets = async (pin) => {
+  const token = await getToken();
+  const body = await api({
+    url: 'api/crons',
+    searchParams: {
+      searchValue: process.env.ASSETS,
+      t: Date.now(),
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+    },
+  }).json();
+  const id=body.data[1]._id;
+    const Data = await api({
+    url: 'api/crons/'+id+'/log',
+    searchParams: {
+      t: Date.now(),
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+    },
+  }).json();
+  const arr=Data.data.split('********开始');
+  return arr.filter(item=>item.indexOf(pin)!=-1)
+};
+module.exports.getAssetsM = async (pin) => {
+  const token = await getToken();
+  const body = await api({
+    url: 'api/crons',
+    searchParams: {
+      searchValue: process.env.ASSETSM,
+      t: Date.now(),
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+    },
+  }).json();
+  const id=body.data[0]._id;
+    const Data = await api({
+    url: 'api/crons/'+id+'/log',
+    searchParams: {
+      t: Date.now(),
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+    },
+  }).json();
+  const arr=Data.data.split('********开始');
+  return arr.filter(item=>item.indexOf(pin)!=-1)
+};
 module.exports.getEnvsCount = async () => {
   const data = await this.getEnvs();
   return data.length;

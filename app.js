@@ -9,6 +9,7 @@ const User = require('./user');
 const packageJson = require('./package.json');
 const fs=require('fs');
 const { exec } = require('child_process');
+const { getAssets,getAssetsM } = require('./ql');
 // Create express instance
 const app = new Koa();
 const router = new Router();
@@ -62,6 +63,19 @@ router.get('/api/qrcode', async (ctx) => {
       ua: user.ua,
     },
   };
+});
+
+router.get('/api/assets', async (ctx) => {
+    const query = ctx.query;
+  const pin = query.pin;
+  const type=query.type
+  if (type==='day') {
+      const data=await getAssets(pin)
+ctx.body={data}
+  }else{
+        const data=await getAssetsM(pin)
+ctx.body={data}
+  }
 });
 
 router.post('/api/check', body(), async (ctx) => {
