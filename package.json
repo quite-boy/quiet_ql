@@ -1,0 +1,25 @@
+{
+  "version": "1.1.0",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {
+    "@koa/cors": "^3.1.0",
+    "@koa/router": "^10.1.0",
+    "axios": "^0.21.1",
+    "child_process": "^1.0.2",
+    "dotenv": "^10.0.0",
+    "fs": "0.0.1-security",
+    "got": "^11.8.2",
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
+    "koa-log4": "^2.3.2",
+    "koa-static": "^5.0.0",
+    "nodemon": "^2.0.12",
+    "qrcode": "^1.4.4",
+    "shelljs": "^0.8.4"
+  }
+}
