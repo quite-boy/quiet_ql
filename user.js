@@ -9,7 +9,8 @@ const path = require('path');
 const qlDir = process.env.QL_DIR || '/ql';
 const notifyFile = path.join(qlDir, 'shell/notify.sh');
 const { exec } = require('child_process');
-const { GET_RANDOM_TIME_UA,RANDOM_UA } = require('./utils/USER_AGENT');
+const { GET_RANDOM_TIME_UA, RANDOM_UA } = require('./utils/USER_AGENT');
+const { default: axios } = require('axios');
 
 const api = got.extend({
   retry: { limit: 0 },
@@ -81,9 +82,8 @@ module.exports = class User {
 
     const nowTime = Date.now();
     // eslint-disable-next-line prettier/prettier
-    const taskPostUrl = `https://plogin.m.jd.com/cgi-bin/m/tmauthreflogurl?s_token=${
-      this.#s_token
-    }&v=${nowTime}&remember=true`;
+    const taskPostUrl = `https://plogin.m.jd.com/cgi-bin/m/tmauthreflogurl?s_token=${this.#s_token
+      }&v=${nowTime}&remember=true`;
 
     const configRes = await api({
       method: 'post',
@@ -193,7 +193,50 @@ module.exports = class User {
       message,
     };
   }
+  // 豆子
+  async getBean(ck) {
+    const response = await api({
+      method: 'GET',
+      url: `https://m.jingxi.com/user/info/QueryUserRedEnvelopesV2?type=1&orgFlag=JD_PinGou_New&page=1&cashRedType=1&redBalanceFlag=1&channel=1&_=${+new Date()}&sceneval=2&g_login_type=1&g_ty=ls`,
+      headers: {
+        Connection: 'Keep-Alive',
+        'Content-Type': 'application/x-www-form-urlencoded; Charset=UTF-8',
+        Accept: 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-cn',
+        Referer: 'https://st.jingxi.com/my/redpacket.shtml?newPg=App&jxsid=16156262265849285961',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 SP-engine/2.14.0 main%2F1.0 baiduboxapp/11.18.0.16 (Baidu; P2 13.3.1) NABar/0.0',
+        Cookie: ck,
+      },
+    });
+    return response.body.data
+  }
 
+  async getBeanTwo(ck, page) {
+    const body = `body={"pageSize": "20", "page": "${page}"}&appid=ld`
+    var beanData;
+    // const response = await api({
+    //   method: 'POST',
+    //   url: `https://api.m.jd.com/client.action?functionId=getJingBeanBalanceDetail`,
+    //   form: body,
+    //   headers: {
+    //     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Mobile/15E148 Safari/604.1',
+    //     'Cookie': ck
+    //   },
+    // });
+    await axios({
+      url: 'https://api.m.jd.com/client.action?functionId=getJingBeanBalanceDetail',
+      method: 'POST',
+      data: body,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Mobile/15E148 Safari/604.1',
+        'Cookie': ck
+      }
+    }).then(res => {
+      beanData = res.data
+    })
+    return beanData
+
+  }
   async getUserInfoByEid() {
     const envs = await getEnvs();
     const env = await envs.find((item) => item._id === this.eid);
@@ -206,14 +249,13 @@ module.exports = class User {
     // if (remarks) {
     //   this.remark = remarks.match(/remark=(.*?);/) && remarks.match(/remark=(.*?);/)[1];
     // }
-    this.cookie=env.value
-    const status=await this.#failCookie();
-    env.userStatus=status
+    this.cookie = env.value
+    const status = await this.#failCookie();
+    env.userStatus = status
     return {
       env
     };
   }
-
   async updateRemark() {
     if (!this.eid || !this.remark || this.remark.replace(/(^\s*)|(\s*$)/g, '') === '') {
       throw new UserError('参数错误', 240, 200);
@@ -293,7 +335,7 @@ module.exports = class User {
     }
     this.nickName = body.data?.userInfo.baseInfo.nickname || decodeURIComponent(this.pt_pin);
   }
- async #failCookie(nocheck) {
+  async #failCookie(nocheck) {
     const body = await api({
       url: `https://me-api.jd.com/user_new/info/GetJDUserInfoUnion?orgFlag=JD_PinGou_New&callSource=mainorder&channel=4&isHomewhite=0&sceneval=2&_=${Date.now()}&sceneval=2&g_login_type=1&g_ty=ls`,
       headers: {
@@ -313,6 +355,7 @@ module.exports = class User {
     }
     return '正常'
   }
+
   #formatSetCookies(headers, body) {
     return new Promise((resolve) => {
       let guid, lsid, ls_token;
