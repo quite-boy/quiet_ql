@@ -9,7 +9,7 @@ const User = require('./user');
 const packageJson = require('./package.json');
 const fs = require('fs');
 const { exec } = require('child_process');
-const { getAssets, getAssetsM } = require('./ql');
+const { getAssets, getAssetsM,getEnvs } = require('./ql');
 // Create express instance
 const app = new Koa();
 const router = new Router();
@@ -128,11 +128,22 @@ router.post('/api/add', body(), async (ctx) => {
 });
 // 读取配置文件
 router.get('/api/getConfig', async (ctx) => {
-
-  const data = fs.readFileSync('./.env', 'utf8')
+    const query=ctx.query
+    const key=query.key
+if (process.env.QUIET_KEY == key) {
+    const data = fs.readFileSync('./.env', 'utf8')
   ctx.body = {
     data
   }
+}else{
+     ctx.body={
+          data:{
+              code:400,
+          message:'key错误'
+          }
+      }
+}
+  
 });
 // 豆子
 router.get('/api/bean', async (ctx) => {
@@ -141,6 +152,22 @@ router.get('/api/bean', async (ctx) => {
   const user = new User({});
   const data = await user.getBean(ck)
   ctx.body = { data }
+});
+router.get('/api/userList', async (ctx) => {
+      const query = ctx.query
+  const key = query.key
+  if (process.env.QUIET_KEY == key) {
+ const data = await getEnvs()
+  ctx.body = { data }
+  }else{
+      ctx.body={
+          data:{
+              code:400,
+          message:'key错误'
+          }
+      }
+  }
+ 
 });
 router.get('/api/beanTwo', async (ctx) => {
   const query = ctx.query;
@@ -152,10 +179,20 @@ router.get('/api/beanTwo', async (ctx) => {
 });
 router.post('/api/getConfig', body(), async (ctx) => {
   const body = ctx.request.body
+  const key = ctx.request.key
   const data = body.data
+  if (process.env.QUIET_KEY == key) {
   fs.writeFileSync('./.env', data);
   exec(`pm2 restart app.js`, (e, k, l) => { })
   ctx.body = { data }
+  }else{
+            ctx.body={
+          data:{
+              code:400,
+          message:'key错误'
+          }
+      }
+  }
 });
 router.get('/api/users', async (ctx) => {
   if (ctx.host.startsWith('localhost')) {
@@ -170,15 +207,49 @@ router.get('/api/users', async (ctx) => {
 });
 
 router.get('/api/getConfigWeb', async (ctx) => {
-  const data = fs.readFileSync('./config.json', 'utf8')
+    const query=ctx.query;
+          const data = fs.readFileSync('./config.json', 'utf8')
   ctx.body = {
     data
   }
+
+});
+router.get('/api/logo', async (ctx) => {
+    const query=ctx.query;
+          const data = JSON.parse(fs.readFileSync('./config.json', 'utf8')).quiet.LOGO
+  ctx.body = {
+    data
+  }
+
+});
+router.get('/api/DetectionCookie', async (ctx) => {
+    const query=ctx.query;
+    const ck=query.ck;
+    const key=query.key
+    if (process.env.QUIET_KEY == key) {
+          const user=new User({})
+          const data = await user.DetectionCookie()
+  ctx.body = {
+    data
+  }
+    }else{
+         ctx.body={
+          data:{
+              code:400,
+          message:'key错误'
+          }
+      } 
+    }
+  
+
 });
 router.post('/api/getConfigWeb', body(), async (ctx) => {
-  const body = ctx.request.body
+      const body = ctx.request.body
   const key = body.key
   const value = body.value
+  const keys=body.keys
+    if (process.env.QUIET_KEY == keys) {
+
   editDependencies({ key: key, value: value, filepath: './config.json', type: 'quiet' })
   //  exec(`pm2 restart app.js`,(e,k,l)=>{})
   ctx.body = {
@@ -186,6 +257,14 @@ router.post('/api/getConfigWeb', body(), async (ctx) => {
       code: 200
     }
   }
+    }else{
+              ctx.body={
+          data:{
+              code:400,
+          message:'key错误'
+          }
+      }
+    }
 });
 router.post('/api/login', body(), async (ctx) => {
   const body = ctx.request.body

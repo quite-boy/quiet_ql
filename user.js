@@ -4,14 +4,13 @@
 const got = require('got');
 require('dotenv').config();
 const QRCode = require('qrcode');
-const { addEnv, delEnv, getEnvs, getEnvsCount, updateEnv } = require('./ql');
+const { addEnv, delEnv, getEnvs, getEnvsCount, updateEnv, } = require('./ql');
 const path = require('path');
 const qlDir = process.env.QL_DIR || '/ql';
 const notifyFile = path.join(qlDir, 'shell/notify.sh');
 const { exec } = require('child_process');
 const { GET_RANDOM_TIME_UA, RANDOM_UA } = require('./utils/USER_AGENT');
 const { default: axios } = require('axios');
-
 const api = got.extend({
   retry: { limit: 0 },
   responseType: 'json',
@@ -292,6 +291,18 @@ module.exports = class User {
     };
   }
 
+  
+//   检测ck
+  async DetectionCookie() {
+     const evns= await getEnvs()
+     const arrAys=[]
+    for(let k in evns){
+    this.cookie=evns[k].value
+    const values=await this.#failCookies()
+    if(values=='到期') arrAys.push(evns[k]._id) 
+    }
+ return arrAys
+  }
   static async getPoolInfo() {
     const count = await getEnvsCount();
     const allowCount = (process.env.ALLOW_NUM || 40) - count;
@@ -355,7 +366,26 @@ module.exports = class User {
     }
     return '正常'
   }
-
+   async  #failCookies (nocheck) {
+    const body = await api({
+      url: `https://me-api.jd.com/user_new/info/GetJDUserInfoUnion?orgFlag=JD_PinGou_New&callSource=mainorder&channel=4&isHomewhite=0&sceneval=2&_=${Date.now()}&sceneval=2&g_login_type=1&g_ty=ls`,
+      headers: {
+        Accept: '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-cn',
+        Connection: 'keep-alive',
+        Cookie: this.cookie,
+        Referer: 'https://home.m.jd.com/myJd/newhome.action',
+        'User-Agent':
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 SP-engine/2.14.0 main%2F1.0 baiduboxapp/11.18.0.16 (Baidu; P2 13.3.1) NABar/0.0',
+        Host: 'me-api.jd.com',
+      },
+    }).json();
+    if (!body.data?.userInfo && !nocheck) {
+      return '到期'
+    }
+    return '正常'
+  }
   #formatSetCookies(headers, body) {
     return new Promise((resolve) => {
       let guid, lsid, ls_token;

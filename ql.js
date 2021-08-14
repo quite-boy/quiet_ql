@@ -47,9 +47,9 @@ module.exports.getAssets = async (pin) => {
       authorization: `Bearer ${token}`,
     },
   }).json();
-  const id=body.data[1]._id;
-    const Data = await api({
-    url: 'api/crons/'+id+'/log',
+  const id = body.data[1]._id;
+  const Data = await api({
+    url: 'api/crons/' + id + '/log',
     searchParams: {
       t: Date.now(),
     },
@@ -58,8 +58,8 @@ module.exports.getAssets = async (pin) => {
       authorization: `Bearer ${token}`,
     },
   }).json();
-  const arr=Data.data.split('********开始');
-  return arr.filter(item=>item.indexOf(pin)!=-1)
+  const arr = Data.data.split('********开始');
+  return arr.filter(item => item.indexOf(pin) != -1)
 };
 module.exports.getAssetsM = async (pin) => {
   const token = await getToken();
@@ -74,9 +74,9 @@ module.exports.getAssetsM = async (pin) => {
       authorization: `Bearer ${token}`,
     },
   }).json();
-  const id=body.data[0]._id;
-    const Data = await api({
-    url: 'api/crons/'+id+'/log',
+  const id = body.data[0]._id;
+  const Data = await api({
+    url: 'api/crons/' + id + '/log',
     searchParams: {
       t: Date.now(),
     },
@@ -85,8 +85,8 @@ module.exports.getAssetsM = async (pin) => {
       authorization: `Bearer ${token}`,
     },
   }).json();
-  const arr=Data.data.split('********开始');
-  return arr.filter(item=>item.indexOf(pin)!=-1)
+  const arr = Data.data.split('********开始');
+  return arr.filter(item => item.indexOf(pin) != -1)
 };
 module.exports.getEnvsCount = async () => {
   const data = await this.getEnvs();
@@ -133,6 +133,20 @@ module.exports.updateEnv = async (cookie, eid, remarks) => {
   }).json();
   return body;
 };
+module.exports.getUserList = async () => {
+  const token = await getToken();
+  const body = await api({
+    url: 'api/crons',
+    searchParams: {
+      searchValue: process.env.ASSETSM,
+      t: Date.now(),
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+    },
+  }).json();
+}
 
 module.exports.delEnv = async (eid) => {
   const token = await getToken();
